@@ -1,0 +1,335 @@
+11.19 02:16
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+#include <chrono>
+#include <string>
+using namespace std;
+
+vector<vector<string>> maze;
+vector<vector<bool>> correctPath;
+vector<vector<bool>> visited;
+int W, H;
+int playerX, playerY;
+int exitX, exitY;
+bool gameOver = false;
+bool showCorrectPath = false;
+const string playerChar = "\033[32mo\033[0m";
+const string clownChar = "\033[31m🤡\033[0m"; // 主角变小丑样式
+bool isGameCleared = false;
+const string WALL = "■";
+const string PATH = " ";
+const string EXIT_CHAR = "\033[95mx\033[0m";
+const string BORDER_TEXT = "\033[91m";
+const string FINAL_TEXT = "你走出了迷宫，却没走进她的内心";
+const string GIRL_EMOJI = "\033[93m\033[0m";
+const string GIRL_SPEECH = "\033[93m哈哈哈哈哈真是小丑\033[0m";
+
+// 计时相关
+bool isInfiniteTime = false;
+int remainingTime = 0;
+chrono::steady_clock::time_point startTime;
+chrono::steady_clock::time_point lastRefreshTime;
+
+// 极短延迟（降低CPU占用）
+void delayTiny() {
+    for (long long i=0; i<1e5; i++);
+}
+
+// 超慢延迟（约2秒，用于动画慢放）
+void delayUltraSlow() {
+    for (long long i=0; i<2e7; i++);
+}
+
+// 计算剩余时间
+int getRemainingTime() {
+    if (isInfiniteTime) return -1;
+    auto now = chrono::steady_clock::now();
+    auto elapsed = chrono::duration_cast<chrono::seconds>(now - startTime).count();
+    return max(0, remainingTime - (int)elapsed);
+}
+
+// 选择时间模式
+void chooseTimeMode() {
+    cout << BORDER_TEXT << "===== 选择时间模式 =====" << "\033[0m" << endl;
+    cout << "1=无限时间 2=限制时间（输入秒数）" << endl;
+    cout << "输入数字选择：";
+    int choice;
+    while (!(cin >> choice)) {
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "输入错误！请输入1或2：";
+    }
+
+    if (choice == 1) {
+        isInfiniteTime = true;
+        remainingTime = 0;
+    } else {
+        isInfiniteTime = false;
+        cout << "请输入限制时间（秒）：";
+        while (!(cin >> remainingTime) || remainingTime <= 0) {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "输入错误！请输入正整数：";
+        }
+        startTime = chrono::steady_clock::now();
+    }
+    lastRefreshTime = chrono::steady_clock::now();
+    system("clear");
+}
+
+// 生成迷宫（修复边角对齐）
+void generateMazeDFS(int x, int y) {
+    maze[y][x] = PATH;
+    int dirs[4][2] = {{0,2}, {0,-2}, {2,0}, {-2,0}};
+    for (int i=0; i<4; i++) swap(dirs[i], dirs[rand()%4]);
+    
+    for (int i=0; i<4; i++) {
+        int nx = x + dirs[i][0];
+        int ny = y + dirs[i][1];
+        if (nx >=1 && nx < W-1 && ny >=1 && ny < H-1 && maze[ny][nx] == WALL) {
+            maze[ny - dirs[i][1]/2][nx - dirs[i][0]/2] = PATH;
+            generateMazeDFS(nx, ny);
+        }
+    }
+}
+
+bool dfsGuidePath(int x, int y) {
+    if (x == exitX && y == exitY) {
+        correctPath[y][x] = true;
+        return true;
+    }
+    if (x < 1 || x >= W-1 || y < 1 || y >= H-1 || maze[y][x] == WALL || visited[y][x]) {
+        return false;
+    }
+    
+    visited[y][x] = true;
+    if (dfsGuidePath(x+1, y) || dfsGuidePath(x-1, y) || dfsGuidePath(x, y+1) || dfsGuidePath(x, y-1)) {
+        correctPath[y][x] = true;
+        return true;
+    }
+    return false;
+}
+
+void generateMaze(int mode) {
+    W = (mode == 1) ? 17 : 23;
+    H = (mode == 1) ? 11 : 15;
+    maze.resize(H, vector<string>(W, WALL)); // 初始化全墙
+    correctPath.resize(H, vector<bool>(W, false));
+    visited.resize(H, vector<bool>(W, false));
+
+    // 强制设置边界为墙（修复边角对齐）
+    for (int x=0; x<W; x++) {
+        maze[0][x] = WALL;
+        maze[H-1][x] = WALL;
+    }
+    for (int y=0; y<H; y++) {
+        maze[y][0] = WALL;
+        maze[y][W-1] = WALL;
+    }
+
+    generateMazeDFS(1, 1);
+
+    playerX = 1;
+    playerY = 1;
+    maze[playerY][playerX] = playerChar;
+    maze[0][1] = BORDER_TEXT + "阿" + "\033[0m";
+    maze[0][2] = BORDER_TEXT + "杰" + "\033[0m";
+    maze[0][3] = BORDER_TEXT + "迷" + "\033[0m";
+    maze[0][4] = BORDER_TEXT + "宫" + "\033[0m";
+    for (int x=5; x<W; x++) maze[0][x] = WALL;
+
+    exitX = W - 2;
+    exitY = H - 2;
+    maze[exitY][exitX] = EXIT_CHAR;
+
+    dfsGuidePath(playerX, playerY);
+}
+
+void chooseDifficulty() {
+    cout << BORDER_TEXT << "===== 阿杰迷宫 =====" << "\033[0m" << endl;
+    cout << "1=简单模式（小迷宫） 2=困难模式（大迷宫）" << endl;
+    cout << "输入数字选择：";
+    int diff;
+    while (!(cin >> diff) || (diff != 1 && diff != 2)) {
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "输入错误！请输入1或2：";
+    }
+    generateMaze(diff);
+}
+
+// 绘制通关界面（主角在文案前，美女台词在右侧）
+void draw通关界面(string playerStyle, int girlX) {
+    system("clear");
+    // 文案区域（主角位于文案下方）
+    cout << BORDER_TEXT << "===== 恭喜通关！=====" << "\033[0m" << endl;
+    cout << FINAL_TEXT << endl;
+    cout << BORDER_TEXT << "=====================" << "\033[0m" << endl;
+    
+    // 角色区域（主角在文案正下方）
+    int playerY_pos = 3; // 文案下方的位置
+    for (int y=0; y<H; y++) {
+        for (int x=0; x < max(W, girlX + 20); x++) { // 扩展区域容纳台词
+            // 主角（文案正下方）
+            if (x == 5 && y == playerY_pos) {
+                cout << playerStyle;
+            }
+            // 美女
+            else if (x == girlX && y == playerY_pos) {
+                cout << GIRL_EMOJI;
+                // 美女右侧显示台词
+                if (girlX <= 6) {
+                    cout << " " << GIRL_SPEECH;
+                }
+            }
+            else {
+                cout << " ";
+            }
+        }
+        cout << endl;
+    }
+}
+
+// 主循环
+void mainLoop() {
+    char c;
+    // 初始化界面
+    system("clear");
+    int remTime = getRemainingTime();
+    cout << "当前时间：";
+    if (isInfiniteTime) {
+        cout << "\033[32m无限时间\033[0m" << endl;
+    } else {
+        cout << "\033[31m剩余" << remTime << "秒\033[0m" << endl;
+    }
+    for (int y=0; y<H; y++) {
+        for (int x=0; x<W; x++) {
+            if (x == playerX && y == playerY) cout << playerChar;
+            else if (x == exitX && y == exitY) cout << EXIT_CHAR;
+            else if (showCorrectPath && correctPath[y][x]) cout << "\033[34m→\033[0m";
+            else cout << maze[y][x];
+        }
+        cout << endl;
+    }
+    cout << "\nW=上 S=下 A=左 D=右 | 按M显示路线 | Q=退出" << endl;
+
+    while (!gameOver && !isGameCleared) {
+        auto now = chrono::steady_clock::now();
+        // 每0.3秒刷新一次界面
+        if (chrono::duration_cast<chrono::milliseconds>(now - lastRefreshTime).count() >= 300) {
+            system("clear");
+            int remTime = getRemainingTime();
+            cout << "当前时间：";
+            if (isInfiniteTime) {
+                cout << "\033[32m无限时间\033[0m" << endl;
+            } else {
+                if (remTime <= 0) {
+                    cout << "\033[31m时间已到！游戏结束\033[0m" << endl;
+                    gameOver = true;
+                    for (int i=0; i<3; i++) delayTiny();
+                    return;
+                }
+                cout << "\033[31m剩余" << remTime << "秒\033[0m" << endl;
+            }
+            for (int y=0; y<H; y++) {
+                for (int x=0; x<W; x++) {
+                    if (x == playerX && y == playerY) cout << playerChar;
+                    else if (x == exitX && y == exitY) cout << EXIT_CHAR;
+                    else if (showCorrectPath && correctPath[y][x]) cout << "\033[34m→\033[0m";
+                    else cout << maze[y][x];
+                }
+                cout << endl;
+            }
+            cout << "\nW=上 S=下 A=左 D=右 | 按M显示路线 | Q=退出" << endl;
+            lastRefreshTime = now;
+        }
+
+        // 实时处理输入
+        if (cin >> c) {
+            if (c == 'm' || c == 'M') {
+                showCorrectPath = !showCorrectPath;
+            } else if (c == 'q' || c == 'Q') {
+                gameOver = true;
+                return;
+            } else {
+                int nx = playerX, ny = playerY;
+                if (c == 'w') ny--;
+                else if (c == 's') ny++;
+                else if (c == 'a') nx--;
+                else if (c == 'd') nx++;
+
+                if (nx >=1 && nx < W-1 && ny >=1 && ny < H-1 && maze[ny][nx] != WALL) {
+                    maze[playerY][playerX] = PATH;
+                    playerX = nx;
+                    playerY = ny;
+                    maze[playerY][playerX] = playerChar;
+
+                    // 通关动画
+                    if (playerX == exitX && playerY == exitY) {
+                        isInfiniteTime = true;
+                        isGameCleared = true;
+                        
+                        // 1. 笑脸慢放停留8秒（主角在文案前）
+                        draw通关界面(playerChar, W + 10);
+                        cout << "" << endl;
+                        for (int i=0; i<4; i++) delayUltraSlow();
+
+                        // 2. 心碎慢放停留5秒
+                        draw通关界面(playerChar, W + 10);
+                        cout << "" << endl;
+                        for (int i=0; i<3; i++) delayUltraSlow();
+
+                        // 3. 美女从最右侧慢走到主角旁
+                        int girlX = W + 10;
+                        int targetX = 6; // 主角右侧位置
+                        while (girlX > targetX && !gameOver) {
+                            draw通关界面(playerChar, girlX);
+                            girlX--;
+                            delayUltraSlow();
+                        }
+
+                        // 4. 主角变小丑慢放停留8秒
+                        draw通关界面(clownChar, targetX);
+                        for (int i=0; i<4; i++) delayUltraSlow();
+                        
+                        gameOver = true;
+                        return;
+                    }
+                }
+            }
+            // 输入后立即刷新
+            system("clear");
+            int remTime = getRemainingTime();
+            cout << "当前时间：";
+            if (isInfiniteTime) {
+                cout << "\033[32m无限时间\033[0m" << endl;
+            } else {
+                cout << "\033[31m剩余" << remTime << "秒\033[0m" << endl;
+            }
+            for (int y=0; y<H; y++) {
+                for (int x=0; x<W; x++) {
+                    if (x == playerX && y == playerY) cout << playerChar;
+                    else if (x == exitX && y == exitY) cout << EXIT_CHAR;
+                    else if (showCorrectPath && correctPath[y][x]) cout << "\033[34m→\033[0m";
+                    else cout << maze[y][x];
+                }
+                cout << endl;
+            }
+            cout << "\nW=上 S=下 A=左 D=右 | 按M显示路线 | Q=退出" << endl;
+            lastRefreshTime = chrono::steady_clock::now();
+        }
+
+        delayTiny();
+    }
+}
+
+int main() {
+    srand((unsigned int)time(NULL));
+    chooseDifficulty();
+    chooseTimeMode();
+    mainLoop();
+    return 0;
+}
+    
