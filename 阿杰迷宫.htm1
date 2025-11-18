@@ -82,7 +82,7 @@
             // 随机打乱方向
             for (let i = 0; i < dirs.length; i++) {
                 const j = Math.floor(Math.random() * dirs.length);
-                [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
+                [dirs[i], dirs],]] = [dirs],], dirs[i]];
             }
 
             for (const dir of dirs) {
@@ -135,29 +135,29 @@
 
             // 玩家起点
             playerX = 1;
-            playerY = 1;
-            // 标题（阿杰迷宫）
-            const titleChars = BORDER_TEXT.split('');
-            for (let i = 0; i < titleChars.length && i < W; i++) {
-                maze[0][i+1] = titleChars[i];
+playery=1；
+// 标题（阿杰迷宫）
+Const titleChars=BORDER_text.split(")；
+for(让i=0；i<titleChars.length&&i<W；i++){
+maze[0][i+1]=titleChars[i]；
             }
-            // 出口
-            exitX = W - 2;
-            exitY = H - 2;
-            maze[exitY][exitX] = EXIT_CHAR;
+// 出口
+exitX=W-2；
+exitY=H-2；
+maze[exitY][exitX]=EXIT_CHAR；
 
-            dfsGuidePath(playerX, playerY);
+dfsGuidePath(playerX，playererry)；
         }
 
-        // 选择难度
-        async function chooseDifficulty() {
-            const diff = await prompt("===== 阿杰迷宫 =====\n1=简单模式（小迷宫） 2=困难模式（大迷宫）\n输入数字选择：", "1");
-            generateMaze(parseInt(diff));
+// 选择难度
+异步函数chooseDiffistory(){
+常数差异=等待提示("=================阿杰迷宫=========\n1=简单模式(小迷宫)2=困难模式(大迷宫)\n输入数字选择："，"1")；
+generateMaze(parseInt(diff))；
         }
 
 // 选择时间模式
 异步函数chooseTimeMode(){
-Const choice=await prompt("=========选择时间模式=========\n1=无限时间2=限制时间(输入秒数)\n输入数字选择："，"1")；
+常量选择=等待提示("=============选择时间模式=============\n1=无限时间2=限制时间(输入秒数)\n输入数字选择："，"1")；
 if(choice==="1"){
 isInfiniteTime=true；
 }else{
@@ -195,7 +195,7 @@ cellDiv.className+="路径"；
 cellDiv.textContent=PATH；
 }else{
 cellDiv.className+="border-text"；
-cellDiv.textContent=迷宫[y][x]；
+cellDiv.textContent=迷宫[y][x[y
                     }
 rowDiv.appendChild(cellDiv)；
                 }
@@ -215,7 +215,7 @@ GameOver=true；
 警惕的("时间到！ 你失败了")；
                 }
             }
-        }
+}
 
 // 移动玩家
 函数MovePlayer(dx，dy){
@@ -239,9 +239,9 @@ winScreen.innerHTML='
 <p>你现在是：${jownballChar}</p>
 `;
 winScreen.style.display="block"；
-                }
-            }
-        }
+}
+}
+}
 
 // 键盘控制
 document.addEventListener('keydown'，(e)=>{
@@ -252,15 +252,15 @@ case's'：MovePlayer(0，1)；break；
 案例'd'：MovePlayer(1，0)；break；
 大小写'M'：showCorrectPath=！showCorrectPath；renderMaze()；打断；
 案例'Q'：如果(确认("确定退出游戏？"))window.close()；break；
-            }
-        });
+}
+});
 
 // 初始化游戏
 异步函数initGame(){
 等待选择难度()；
 等待chooseTimeMode()；
 renderMaze()；
-        }
+}
 
 initGame()；
 </script>
