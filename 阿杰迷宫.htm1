@@ -35,26 +35,26 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-背景：#000；
-填料：20px；
-边框：2px实心#FF0000；
+            background: #000;
+            padding: 20px;
+            border: 2px solid #FF0000;
         }
-.girl{color：#FFC107；}/*美女：黄色*/
-</style>
+        .girl { color: #FFC107; } /* 美女：黄色 */
+    </style>
 </head>
 <body>
-<div id="info"class="info-text"></div>
-<div id="maze"class="maze-container"></div>
-<div id="controls"class="info-text">W=上S=下A=左D=右|按M显示路线|Q=退出</div>
-<div id="winscreen"class="win-screen"style="display：无；"></div>
+    <div id="info" class="info-text"></div>
+    <div id="maze" class="maze-container"></div>
+    <div id="controls" class="info-text">W=上 S=下 A=左 D=右 | 按M显示路线 | Q=退出</div>
+    <div id="winScreen" class="win-screen" style="display: none;"></div>
 
-<script>
-// 全局变量
-设maze=[]；
-设correctpath=[]；
-让访问=[]；
-设W，H；
-让playerX，playery；
+    <script>
+        // 全局变量
+        let maze = [];
+        let correctPath = [];
+        let visited = [];
+        let W, H;
+        let playerX, playerY;
         let exitX, exitY;
         let gameOver = false;
         let isGameCleared = false;
@@ -82,7 +82,7 @@
             // 随机打乱方向
             for (let i = 0; i < dirs.length; i++) {
                 const j = Math.floor(Math.random() * dirs.length);
-                [dirs[i], dirs],]] = [dirs],], dirs[i]];
+                [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
             }
 
             for (const dir of dirs) {
@@ -110,49 +110,49 @@
                 correctPath[y][x] = true;
                 return true;
             }
-返回false；
+            return false;
         }
 
-// 生成迷宫（含边界标题）
-函数generateMaze(模式){
-W=mode===1？17:23；
-H=模式===1？11:15；
-maze=Array(H).fill().map(()=>Array(W).fill(WALL))；
-correctpath=Array(H).fill().map(()=>Array(W).fill(false))；
-visited=Array(H).fill().map(()=>Array(W).fill(false))；
+        // 生成迷宫（含边界标题）
+        function generateMaze(mode) {
+            W = mode === 1 ? 17 : 23;
+            H = mode === 1 ? 11 : 15;
+            maze = Array(H).fill().map(() => Array(W).fill(WALL));
+            correctPath = Array(H).fill().map(() => Array(W).fill(false));
+            visited = Array(H).fill().map(() => Array(W).fill(false));
 
-// 边界设为墙
-for(设x=0；x<W；x++){
-maze[0][x]=Wall；
-maze[H-1][x]=墙；
+            // 边界设为墙
+            for (let x = 0; x < W; x++) {
+                maze[0][x] = WALL;
+                maze[H-1][x] = WALL;
             }
-for(设y=0；y<H；y++){
-maze[y][0]=Wall；
-maze[y][W-1]=墙；
+            for (let y = 0; y < H; y++) {
+                maze[y][0] = WALL;
+                maze[y][W-1] = WALL;
             }
 
-generateMazeDFS(1，1)；
+            generateMazeDFS(1, 1);
 
-// 玩家起点
-playerX=1；
-playery=1；
+            // 玩家起点
+            playerX = 1;
+            playerY = 1;
             // 标题（阿杰迷宫）
-Const titleChars=BORDER_text.split(")；
-for(让i=0；i<titleChars.length&&i<W；i++){
-maze[0][i+1]=titleChars[i]；
+            const titleChars = BORDER_TEXT.split('');
+            for (let i = 0; i < titleChars.length && i < W; i++) {
+                maze[0][i+1] = titleChars[i];
             }
-// 出口
-exitX=W-2；
-exitY=H-2；
-maze[exitY][exitX]=EXIT_CHAR；
+            // 出口
+            exitX = W - 2;
+            exitY = H - 2;
+            maze[exitY][exitX] = EXIT_CHAR;
 
-dfsGuidePath(playerX，playerery)；
+            dfsGuidePath(playerX, playerY);
         }
 
-// 选择难度
-异步函数chooseDiffistory(){
-常数差异=等待提示("=================阿杰迷宫=========\n1=简单模式(小迷宫)2=困难模式(大迷宫)\n输入数字选择："，"1")；
-generateMaze(parseInt(diff))；
+        // 选择难度
+        async function chooseDifficulty() {
+            const diff = await prompt("===== 阿杰迷宫 =====\n1=简单模式（小迷宫） 2=困难模式（大迷宫）\n输入数字选择：", "1");
+            generateMaze(parseInt(diff));
         }
 
 // 选择时间模式
@@ -180,7 +180,7 @@ cellDiv.className="cell"；
                     
 if(x===playerX&&y===playery){
 cellDiv.className+=isGameCleared？"小丑"："玩家"；
-cellDiv.textContent=isGameCleared？callowChar:playerChar；
+cellDiv.TextContent=isGameCleared？callowChar:playerChar；
 }否则if(x===exitX&&y===exitY){
 cellDiv.className+="exit"；
 cellDiv.textContent=EXIT_CHAR；
@@ -195,7 +195,7 @@ cellDiv.className+="路径"；
 cellDiv.textContent=PATH；
 }else{
 cellDiv.className+="border-text"；
-cellDiv.textContent=迷宫[y][x[y
+cellDiv.textContent=迷宫[y][x]；
                     }
 rowDiv.appendChild(cellDiv)；
                 }
@@ -215,16 +215,16 @@ GameOver=true；
 警惕的("时间到！ 你失败了")；
                 }
             }
-<！doctype html>
+        }
 
-<head>
-<title>阿杰迷宫</title>
-<style>
-cellDiv.textContent=isGameCleared？callowChar:playerChar；
-}否则if(x===exitX&&y===exitY){
-cellDiv.className+="exit"；
-cellDiv.textContent=EXIT_CHAR；
-}else if(showCorrectPath&&correctpath[y][x]){
+// 移动玩家
+函数MovePlayer(dx，dy){
+if(gameOver||isGameCleared)返回；
+Const newX=playerX+dx；
+Const newY=playery+dy；
+if(newX>=0&&newX<W&&newY>=0&&newY<H&&maze[newY][newX]！==墙){
+playerX=newX；
+playery=newY；
 renderMaze()；
 // 检查是否到达出口
 if(playerX===exitX&&playery===exitY){
@@ -239,9 +239,9 @@ winScreen.innerHTML='
 <p>你现在是：${jownballChar}</p>
 `;
 winScreen.style.display="block"；
-}
-}
-}
+                }
+            }
+        }
 
 // 键盘控制
 document.addEventListener('keydown'，(e)=>{
@@ -252,15 +252,15 @@ case's'：MovePlayer(0，1)；break；
 案例'd'：MovePlayer(1，0)；break；
 大小写'M'：showCorrectPath=！showCorrectPath；renderMaze()；打断；
 案例'Q'：如果(确认("确定退出游戏？"))window.close()；break；
-}
-});
+            }
+        });
 
 // 初始化游戏
 异步函数initGame(){
 等待选择难度()；
 等待chooseTimeMode()；
 renderMaze()；
-}
+        }
 
 initGame()；
 </script>
